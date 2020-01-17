@@ -23,10 +23,10 @@ dump the elasticsearch data written in Rust.
 
 
 ### v0.1.0
-support query
-support zip data and upload to s3
-files name <index>.data
+- support query
+- support zip data and upload to s3
+- files name <index>.data
 
 ### contribute:
-support csv
-support reindex
+- support csv
+- support reindex
