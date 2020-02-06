@@ -1,10 +1,32 @@
 # esdump
 dump the elasticsearch data written in Rust.
 
+## build:
+1. you must have cargo!
+
+check your cargo version:
+```shell
+cargo -V
+```
+
+2. build esdump
+```shell
+cd /usr/local
+git clone https://github.com/qianwj/esdump.git
+cd esdump
+cargo build
+mv target/debug/esdump .
+rm -rf target
+```
+
+3. set PATH
+```shell
+export ES_DUMP=/usr/local/esdump/esdump
+```
 
 ## Usage:
 ```shell
-./esdump -i <your es index name>
+esdump -i <your es index name>
 ```
 
 ### all paramters:
