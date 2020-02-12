@@ -35,6 +35,13 @@ fn zip_dir<T>(it: &mut dyn Iterator<Item=DirEntry>, prefix: &str, writer: T, met
         // Write file or directory explicitly
         // Some unzip tools unzip files with directory paths correctly, some do not!
         if path.is_file() {
+            let filter = match name.to_str() {
+                Some(v) => {
+                    if v.to_string().contains(".zip") { true } else { false }
+                },
+                None => false
+            };
+            if filter { continue }
             println!("adding file {:?} as {:?} ...", path, name);
             zip.start_file_from_path(name, options)?;
             let mut f = File::open(path)?;

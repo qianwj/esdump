@@ -197,14 +197,21 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
     };
     id = 1;
 
-    println!("hello?");
     // create files
+    match std::fs::create_dir(&dump.path) {
+        Ok(()) => (),
+        Err(_e) => ()
+    }
     let file_name = format!("{path}/{idx}_{i}.data", path = dump.path, idx = dump.index, i = 0);
     let zip_file_name = format!("{path}/{idx}.zip", path = dump.path, idx = dump.index);
 
     // write first task data
     write_to_file(data, file_name.as_str(), dump.path.as_str(), zip_file_name.as_str(), &max_id)?;
     println!("esdump: {} sub task 0 complete", scroll_id);
+    if max_id == 1 {
+        crate::compress::zip(dump.path.as_str(), &zip_file_name);
+        return Ok(());
+    }
     
     // scroll others
     let url: String = format!("{addr}/_search/scroll", addr = dump.addr);
