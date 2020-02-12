@@ -160,7 +160,7 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
     copy.scroll_id = scroll_id.to_string();
 
 
-    let total_val = &response["hits"]["total"]["value"].as_i64();
+    let total_val = &response["hits"]["total"].as_i64();
     let total = match total_val {
         None => return Ok(()),
         Some(v) => {
