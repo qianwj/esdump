@@ -187,14 +187,13 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
     };
     id = 1;
 
+    println!("hello?");
     // create files
-    let file_path = format!("{}/{}", dump.path, scroll_id);
-    std::fs::create_dir(&file_path)?;
-    let file_name = format!("{path}/{idx}_{i}.data", path = file_path, idx = dump.index, i = 0);
+    let file_name = format!("{path}/{idx}_{i}.data", path = dump.path, idx = dump.index, i = 0);
     let zip_file_name = format!("{path}/{idx}.zip", path = dump.path, idx = dump.index);
 
     // write first task data
-    write_to_file(data, file_name.as_str(), file_path.as_str(), zip_file_name.as_str(), &max_id)?;
+    write_to_file(data, file_name.as_str(), dump.path.as_str(), zip_file_name.as_str(), &max_id)?;
     println!("esdump: {} sub task 0 complete", scroll_id);
     
     // scroll others
@@ -214,7 +213,6 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
 
 async fn scroll_other(dump: EsDump, client: &Client, url: &str, path: &str, id: &i32, max_id: &i32) -> Result<(), Box<dyn Error>> {
     let mut params = HashMap::new();
-    let scroll_id = dump.scroll_id.clone();
     params.insert("scroll_id", dump.scroll_id);
     params.insert("scroll", dump.scroll);
     let resp = client
@@ -225,10 +223,9 @@ async fn scroll_other(dump: EsDump, client: &Client, url: &str, path: &str, id: 
         None => return Ok(()),
         Some(data) => {
             if data.len() > 0 {
-                let file_path = format!("{}/{}", path, scroll_id);
-                let file_name = format!("{path}/{idx}_{i}.data", path = file_path, idx = dump.index, i = id);
+                let file_name = format!("{path}/{idx}_{i}.data", path = path, idx = dump.index, i = id);
                 let zip_file_name = format!("{path}/{idx}.zip", path = path, idx = dump.index);
-                write_to_file(data, file_name.as_str(), file_path.as_str(), zip_file_name.as_str(), max_id)?;
+                write_to_file(data, file_name.as_str(), path, zip_file_name.as_str(), max_id)?;
             }
             return Ok(())
         },

@@ -58,7 +58,7 @@ fn app() -> EsDump {
         None => (),
         Some(v) => dump = dump.scroll_size(v.parse().unwrap())
     };
-    match app.value_of("path") {
+    match app.value_of("dump_path") {
         None => (),
         Some(v) => dump = dump.path(v)
     };
