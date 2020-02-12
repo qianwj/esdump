@@ -156,6 +156,16 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
         .basic_auth(user, password)
         .body(params).send().await?.json::<Value>().await?;
 
+    let index_exists = match &response["error"]["reason"].as_str() {
+        Some(_v) => {
+            println!("no such index!");
+            false
+        },
+        None => true
+    };
+
+    if !index_exists { return Ok(()) }
+
     let scroll_id = &response["_scroll_id"].as_str().unwrap();
     copy.scroll_id = scroll_id.to_string();
 
