@@ -92,7 +92,7 @@ impl EsDump {
     }
 
     pub fn user(mut self, user: &str) -> EsDump {
-        self.user = user.to_string();
+        self.user = Some(user.to_string());
         self
     }
 
