@@ -25,7 +25,7 @@ pub struct EsDump {
     scroll_id: String,
     params: String,
     path: String,
-    user: String,
+    user: Option<String>,
     password: Option<String>,
     client: Client,
 }
@@ -60,7 +60,7 @@ impl EsDump {
             scroll_id: String::new(),
             params: String::new(),
             path: String::from("./esdump"),
-            user: String::new(),
+            user: None,
             password: None,
             client: Client::default(),
         }
@@ -151,11 +151,12 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
 
     let url = 
         format!("{addr}/{idx}/_search?scroll={scroll}&size={size}", addr = dump.addr, idx = dump.index, scroll = dump.scroll, size = dump.scroll_size);
-    let response = dump.client
-        .get(url.as_str())
-        .basic_auth(user, password)
-        .body(params).send().await?.json::<Value>().await?;
-
+    let request = dump.client.get(url.as_str()).body(params);
+    let response = match user {
+        Some(username) => request.basic_auth(username, password).send().await?.json::<Value>().await?,
+        None => request.send().await?.json::<Value>().await?
+    };
+    
     let index_exists = match &response["error"]["reason"].as_str() {
         Some(_v) => {
             println!("no such index!");
@@ -166,7 +167,14 @@ pub async fn dump(dump: &EsDump) -> Result<(), Box<dyn Error>> {
 
     if !index_exists { return Ok(()) }
 
-    let scroll_id = &response["_scroll_id"].as_str().unwrap();
+    let scroll_id = match &response["_scroll_id"].as_str() {
+        Some(v) => v,
+        None => "not found"
+    };
+    if scroll_id == "not fonud" {
+        println!("request occur error: {:?}", response);
+        return Ok(())
+    }
     copy.scroll_id = scroll_id.to_string();
 
 
@@ -232,10 +240,11 @@ async fn scroll_other(dump: EsDump, client: &Client, url: &str, path: &str, id: 
     let mut params = HashMap::new();
     params.insert("scroll_id", dump.scroll_id);
     params.insert("scroll", dump.scroll);
-    let resp = client
-        .get(url)
-        .basic_auth(dump.user, dump.password).json(&params)
-        .send().await?.json::<Value>().await?;
+    let request = client.get(url);
+    let resp = match dump.user {
+        Some(username) => request.basic_auth(username, dump.password).json(&params).send().await?.json::<Value>().await?,
+        None => request.json(&params).send().await?.json::<Value>().await?
+    };  
     match &resp["hits"]["hits"].as_array() {
         None => return Ok(()),
         Some(data) => {
